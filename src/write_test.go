@@ -1,0 +1,36 @@
+package src
+
+import (
+	"bytes"
+	"testing"
+)
+
+func TestWriteLogFields(t *testing.T) {
+	tests := []struct {
+		name   string
+		msg    string
+		fields []Field
+		want   string
+	}{
+		{name: "message only", msg: "hello", want: "hello\n"},
+		{name: "scalars", msg: "values", fields: MakeFields(int32(-42), uint64(18446744073709551615), float32(1.25), float64(2.5), true, false, "hello world", nil), want: `values -42 18446744073709551615 1.25 2.5 true false "hello world" null` + "\n"},
+		{name: "collections", msg: "values", fields: MakeFields([2]int{1, 2}, []string{"a", "b"}, map[string]int{"count": 2}, struct{ Count int }{2}), want: `values [1,2] ["a","b"] {"count":2} {"Count":2}` + "\n"},
+		{name: "binary", msg: "bytes", fields: MakeFields([]byte{0, 255}), want: `bytes "AP8="` + "\n"},
+		{name: "byte string", msg: "text", fields: []Field{{Type: ByteStringType, Any: []byte("hello")}}, want: `text "hello"` + "\n"},
+		{name: "named field", msg: "received", fields: []Field{{Key: "count", Type: Int32Type, Integer: 2}}, want: `received 2` + "\n"},
+		{name: "fields without message", fields: MakeFields(1, 2), want: `1 2` + "\n"},
+		{name: "escaped string", msg: "text", fields: MakeFields("line\nnext"), want: `text "line\nnext"` + "\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var out bytes.Buffer
+			if _, err := WriteLog(&out, &Entity{Msg: tt.msg, Fields: tt.fields}); err != nil {
+				t.Fatal(err)
+			}
+			if got := out.String(); got != tt.want {
+				t.Errorf("output = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
