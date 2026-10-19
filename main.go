@@ -103,6 +103,7 @@ func (l *Logger) check(msg string, level string, fields ...any) *src.Entity {
 	if src.LogLevelToInt[level] < src.LogLevelToInt[l.config.LogLevel] {
 		return nil
 	}
+	msg, fields = formatMessage(msg, fields)
 
 	if l.config.Encoding == "json" {
 		fmt.Printf("[WARN] [flog] - 'json' encoding not yet supported defaulting to 'console'.")
