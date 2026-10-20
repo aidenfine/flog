@@ -63,7 +63,7 @@ defer logger.Close()
 So if `Separator` is set to `{}` use `{}` placeholders in `Info`, `Debug`, and `Error` to insert values in order:
 
 ```go
-logger.Info("user={}, is user active: {}", "alice", true)
+logger.Info("user={}, is user active: {}", user.name, true)
 // [INFO] [app] - user=alice, is user active: true
 ```
 
