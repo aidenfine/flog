@@ -83,8 +83,5 @@ if err != nil {
     panic(err)
 }
 defer logger.Close()
-logger.Info("server on port: ", port, "with the config of", flog.Config{
-	OutputPath: nil,
-	ShowTime:   true,
-})
+logger.Info("server on port: ", port, "with the config of", server.config)
 ```
