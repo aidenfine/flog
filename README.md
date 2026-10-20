@@ -9,8 +9,9 @@ go get github.com/aidenfine/flog
 ```
 
 Run tests and benchmarks with `make test` and `make bench`.
-Use `make profile` to collect CPU and memory profiles in `profiles/`, then
-`make pprof-cpu` or `make pprof-memory` to open the profile viewer.
+Use `make profile` to collect CPU and memory profiles in `profiles/`.
+Run `make pprof-cpu` or `make pprof-memory` to collect fresh profiles and open
+the corresponding profile viewer.
 Override the benchmark duration with `make profile BENCHTIME=10s`.
 Benchmark stderr is saved to `profiles/benchmark.stderr.log` during profiling.
 
