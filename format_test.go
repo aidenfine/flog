@@ -2,8 +2,44 @@ package flog
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
 )
+
+func TestFormatMessageSeparator(t *testing.T) {
+	tests := []struct {
+		name, separator, msg, want string
+		args, remaining            []any
+	}{
+		{"custom", "[]", "user=[] {}", "user=alice {}", []any{"alice", 42}, []any{42}},
+		{"escapes", "[]", "[[]] [[[]]]", "[] [alice]", []any{"alice"}, nil},
+		{"missing", "<>", "<> <>", "42 <>", []any{42}, nil},
+		{"unicode", "「」", "「「「」「」」」", "「alice世界」", []any{"alice", "世界"}, nil},
+		{"identical characters", "%%", "value=%%", "value=42", []any{42}, nil},
+		{"fields", "[]", "[]", "alice", []any{Any("count", 3), "alice"}, []any{Any("count", 3)}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, remaining := formatMessage(tt.msg, tt.args, tt.separator)
+			if got != tt.want || len(remaining) != len(tt.remaining) || (len(remaining) > 0 && !reflect.DeepEqual(remaining, tt.remaining)) {
+				t.Fatalf("got (%q, %v), want (%q, %v)", got, remaining, tt.want, tt.remaining)
+			}
+		})
+	}
+}
+
+func TestFormatMessageInvalidSeparator(t *testing.T) {
+	for _, separator := range []string{"", "{", "{}x", "\xff}"} {
+		t.Run(separator, func(t *testing.T) {
+			defer func() {
+				if recover() == nil {
+					t.Fatal("expected invalid separator to panic")
+				}
+			}()
+			formatMessage("plain message", nil, separator)
+		})
+	}
+}
 
 func TestPlaceholderLogging(t *testing.T) {
 	tests := []struct {

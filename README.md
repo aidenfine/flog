@@ -19,7 +19,7 @@ Simple example
 import "github.com/aidenfine/flog"
 
 port := 8080
-logger, err := flog.New(false, "app", flog.Config{ShowTime: true})
+logger, err := flog.New(false, "app", flog.Config{ShowTime: true, Separator: "{}"})
 if err != nil {
     panic(err)
 }
@@ -29,7 +29,37 @@ logger.Debug("handling request")
 logger.Error("request failed")
 ```
 
-Use `{}` placeholders in `Info`, `Debug`, and `Error` to insert values in order:
+## Configuration
+
+Build a `flog.Config` and pass it as the third argument to `flog.New`:
+
+```go
+cfg := flog.Config{
+    LogLevel:   "INFO",
+    OutputPath: []string{"app.log"},
+    Separator:  "{}",
+    ShowTime:   true,
+    Encoding:   "console",
+}
+
+logger, err := flog.New(false, "app", cfg)
+if err != nil {
+    panic(err)
+}
+defer logger.Close()
+```
+
+| Field | Purpose |
+| --- | --- |
+| `LogLevel` | Minimum level to log: `"DEBUG"`, `"INFO"`, or `"ERROR"`. For example, `"INFO"` includes info and error messages. An empty string enables all levels. |
+| `OutputPath` | Files to create or append logs to. Logs also go to stderr. Leave empty for stderr only. |
+| `Separator` | Placeholder used to insert values into messages, such as `"{}"` or `"[]"`. Defaults to `"{}"` when empty. Custom values must contain exactly two characters; invalid values panic when formatting a log. |
+| `ShowTime` | Include a timestamp when `true`. Defaults to `false`. |
+| `Encoding` | Use `"console"` or leave empty for console output. `"json"` is not supported yet and falls back to console with a warning. |
+
+`New` returns an error if an output file cannot be opened; call `Close` when finished to release the files.
+
+So if `Separator` is set to `{}` use `{}` placeholders in `Info`, `Debug`, and `Error` to insert values in order:
 
 ```go
 logger.Info("user={}, is user active: {}", "alice", true)
@@ -42,15 +72,13 @@ Unfilled placeholders remain `{}`; extra arguments are appended as before.
 Explicit `flog.Any(...)` fields stay separate and do not consume placeholders.
 Formatting is skipped for disabled log levels. Calls without placeholders or
 escaped braces keep their existing behavior.
-<!--
-Logs go to stderr. An empty `LogLevel` enables all levels; `DEBUG`, `INFO`, or `ERROR` suppresses that level and lower levels. JSON encoding is not yet supported. Set `OutputPath: []string{"app.log"}` to also append logs to files. `New` returns an error if a file cannot be opened; call `Close` to release files when finished. Concurrent log calls are serialized. Logging after `Close` is ignored. Output destinations are written in order (stderr, then files); a write failure stops that entry from reaching later destinations.-->
 
 The package is very flexible allowing for loosely structured logs as well.
 ```go
 import "github.com/aidenfine/flog"
 
 port := 8080
-logger, err := flog.New(false, "app", flog.Config{ShowTime: true})
+logger, err := flog.New(false, "app", flog.Config{ShowTime: true, Separator: "{}"})
 if err != nil {
     panic(err)
 }
