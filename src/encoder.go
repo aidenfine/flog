@@ -57,20 +57,11 @@ type ObjectMarshaler interface{ MarshalLogObject(ObjectEncoder) error }
 type ArrayMarshaler interface{ MarshalLogArray(ArrayEncoder) error }
 
 type jsonObjectEncoder struct {
-	valuesOnly bool
-	buf        bytes.Buffer
-	count      int
+	buf   bytes.Buffer
+	count int
 }
 
 func (e *jsonObjectEncoder) add(key string, value []byte) error {
-	if e.valuesOnly {
-		if e.count > 0 {
-			e.buf.WriteByte(' ')
-		}
-		e.buf.Write(value)
-		e.count++
-		return nil
-	}
 
 	k, err := json.Marshal(key)
 	if err != nil {
@@ -189,19 +180,4 @@ func encodeFields(fields []Field) ([]byte, error) {
 		}
 	}
 	return []byte("{" + enc.buf.String() + "}"), nil
-}
-
-// encodeConsoleValues keeps field serialization but omits top-level keys and braces.
-func encodeConsoleValues(fields []Field) ([]byte, error) {
-	enc := &jsonObjectEncoder{valuesOnly: true}
-	for i, field := range fields {
-		if err := field.AddTo(enc); err != nil {
-			key := field.Key
-			if key == "" {
-				key = fmt.Sprintf("arg%d", i)
-			}
-			return nil, fmt.Errorf("field %q: %w", key, err)
-		}
-	}
-	return enc.buf.Bytes(), nil
 }
