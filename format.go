@@ -12,7 +12,7 @@ import (
 // It panics if separator is invalid.
 func formatMessage(msg string, args []any, separator string) (string, []any) {
 	if !utf8.ValidString(separator) || utf8.RuneCountInString(separator) != 2 {
-		panic("flog: separator must contain exactly two characters")
+		panic("[PANIC] [flog] - separator must contain exactly two characters")
 	}
 	_, firstSize := utf8.DecodeRuneInString(separator)
 	first, second := separator[:firstSize], separator[firstSize:]
