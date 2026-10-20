@@ -15,6 +15,10 @@ the corresponding profile viewer.
 Override the benchmark duration with `make profile BENCHTIME=10s`.
 Benchmark stderr is saved to `profiles/benchmark.stderr.log` during profiling.
 
+## Performance
+Current benchmark result on main branch:
+BenchmarkLogMessageWith10Fields-14 4053475  1549 ns/op  400 B/op 7 allocs/op
+
 Simple example
 ```go
 import "github.com/aidenfine/flog"
@@ -71,6 +75,8 @@ Values use Go's default `%v` formatting, so strings appear without quotes.
 Write `{{` and `}}` for literal braces (for example, `{{}}` logs `{}`).
 Unfilled placeholders remain `{}`; extra arguments are appended as before.
 Explicit `flog.Any(...)` fields stay separate and do not consume placeholders.
+
+Console fields are printed as space-separated values without JSON serialization: strings are unquoted, byte slices display as numbers, and maps and structs use Go formatting. Custom object and array marshalers use the console encoder.
 Formatting is skipped for disabled log levels. Calls without placeholders or
 escaped braces keep their existing behavior.
 

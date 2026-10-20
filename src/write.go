@@ -41,16 +41,12 @@ func encode(e *Entity) (*bytes.Buffer, error) {
 	}
 
 	if len(e.Fields) > 0 {
-		// Structured logging: serialize named fields as a JSON object.
-		// fields, err := encodeFields(e.Fields)
-		fields, err := encodeConsoleValues(e.Fields)
-		if err != nil {
-			return nil, err
-		}
 		if message.Len() > 0 && message.Bytes()[message.Len()-1] != ' ' {
 			message.WriteByte(' ')
 		}
-		message.Write(fields)
+		if err := writeConsoleValues(message, e.Fields); err != nil {
+			return nil, err
+		}
 	}
 	return message, nil
 }

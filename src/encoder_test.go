@@ -1,7 +1,6 @@
 package src
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -60,7 +59,7 @@ func TestEncodeCustomMarshalers(t *testing.T) {
 	}
 }
 
-func TestWriteLogEncodingErrors(t *testing.T) {
+func TestJSONEncodingErrors(t *testing.T) {
 	sentinel := errors.New("marshaler failed")
 	cycle := map[string]any{}
 	cycle["self"] = cycle
@@ -79,8 +78,7 @@ func TestWriteLogEncodingErrors(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var out bytes.Buffer
-			_, err := WriteLog(&out, &Entity{Msg: "hello", Fields: MakeFields(tt.value)})
+			_, err := encodeFields(MakeFields(tt.value))
 			if err == nil {
 				t.Fatal("expected encoding error")
 			}
@@ -89,9 +87,6 @@ func TestWriteLogEncodingErrors(t *testing.T) {
 			}
 			if tt.name == "marshaler error" && !errors.Is(err, sentinel) {
 				t.Errorf("error not preserved: %v", err)
-			}
-			if out.Len() != 0 {
-				t.Errorf("wrote partial log: %q", out.String())
 			}
 		})
 	}

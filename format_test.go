@@ -57,7 +57,7 @@ func TestPlaceholderLogging(t *testing.T) {
 		{"unicode", "你好 {}", []any{"世界"}, "你好 世界"},
 		{"nil", "value={}", []any{nil}, "value=<nil>"},
 		{"literal replacement", "{} {}", []any{"{}", "%s"}, "{} %s"},
-		{"existing values", "user", []any{"alice", true}, "user \"alice\" true"},
+		{"existing values", "user", []any{"alice", true}, "user alice true"},
 		{"fields", "user={}", []any{Any("count", 3), "alice", Any("active", true)}, "user=alice 3 true"},
 		{"only fields", "user={}", []any{Any("count", 3)}, "user={} 3"},
 	}
