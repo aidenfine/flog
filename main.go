@@ -36,10 +36,17 @@ type Config struct {
 
 // New creates a logger and opens its output files in append mode.
 func New(production bool, name string, cfg Config) (*Logger, error) {
+
 	// set default
 	if cfg.Separator == "" {
 		cfg.Separator = "{}"
 	}
+
+	// this does nothing as of now since Encoding is currently not used yet.
+	if cfg.Encoding == "" {
+		cfg.Encoding = "console"
+	}
+
 	l := &Logger{
 		production: production,
 		name:       name,

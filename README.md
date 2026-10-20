@@ -49,13 +49,13 @@ if err != nil {
 defer logger.Close()
 ```
 
-| Field | Purpose |
-| --- | --- |
-| `LogLevel` | Minimum level to log: `"DEBUG"`, `"INFO"`, or `"ERROR"`. For example, `"INFO"` includes info and error messages. An empty string enables all levels. |
-| `OutputPath` | Files to create or append logs to. Logs also go to stderr. Leave empty for stderr only. |
-| `Separator` | Placeholder used to insert values into messages, such as `"{}"` or `"[]"`. Defaults to `"{}"` when empty. Custom values must contain exactly two characters; invalid values panic when formatting a log. |
-| `ShowTime` | Include a timestamp when `true`. Defaults to `false`. |
-| `Encoding` | Use `"console"` or leave empty for console output. `"json"` is not supported yet and falls back to console with a warning. |
+| Field | Purpose | Default |
+| --- | --- | --- |
+| `LogLevel` | Minimum level to log: `"DEBUG"`, `"INFO"`, or `"ERROR"`. For example, `"INFO"` includes info and error messages. An empty string enables all levels. | `"INFO"` |
+| `OutputPath` | Files to create or append logs to. Logs also go to stderr. Leave empty for stderr only. | `None` |
+| `Separator` | Placeholder used to insert values into messages, such as `"{}"` or `"[]"`. Defaults to `"{}"` when empty. Custom values must contain exactly two characters; invalid values panic when formatting a log. | `"{}"` |
+| `ShowTime` | Include a timestamp when `true`. Defaults to `false`. | `false`|
+| `Encoding` | Use `"console"` or leave empty for console output. `"json"` is not supported yet and falls back to console with a warning. | `"console"` |
 
 `New` returns an error if an output file cannot be opened; call `Close` when finished to release the files.
 
