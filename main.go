@@ -21,6 +21,7 @@ type Logger struct {
 	output io.Writer
 	files  []*os.File
 	mu     sync.Mutex
+	fields []src.Field
 	closed bool
 }
 
@@ -89,6 +90,9 @@ func (l *Logger) log(level, msg string, fields ...any) {
 		if _, err := src.WriteLog(l.output, e); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to write log: %v\n", err)
 		}
+		// clear fields
+		clear(l.fields)
+		l.fields = l.fields[:0]
 	}
 }
 
@@ -130,11 +134,13 @@ func (l *Logger) check(msg string, level string, fields ...any) *src.Entity {
 		now := l.clock.Now()
 		t = &now
 	}
+
+	l.fields = src.AppendFields(l.fields[:0], fields...)
 	e := &src.Entity{
 		Msg:        msg,
 		LoggerName: l.name,
 		Time:       t,
-		Fields:     src.MakeFields(fields...),
+		Fields:     l.fields,
 		LogLevel:   level,
 	}
 

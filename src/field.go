@@ -43,29 +43,26 @@ type Field struct {
 	Any     any
 }
 
-// MakeFields preserves each value and classifies its underlying Go kind.
-// Keys are left empty; callers can assign them afterward.
-func MakeFields(fields ...any) []Field {
-	f := make([]Field, 0, len(fields))
-	for _, value := range fields {
+func AppendFields(dst []Field, values ...any) []Field {
+	for _, value := range values {
 		if field, ok := value.(Field); ok {
-			f = append(f, field)
+			dst = append(dst, field)
 			continue
 		}
 		field := Field{Any: value}
 		if _, ok := value.(ObjectMarshaler); ok {
 			field.Type = ObjectType
-			f = append(f, field)
+			dst = append(dst, field)
 			continue
 		}
 		if _, ok := value.(ArrayMarshaler); ok {
 			field.Type = ArrayType
-			f = append(f, field)
+			dst = append(dst, field)
 			continue
 		}
 		v := reflect.ValueOf(value)
 		if !v.IsValid() {
-			f = append(f, field)
+			dst = append(dst, field)
 			continue
 		}
 		switch v.Kind() {
@@ -130,9 +127,14 @@ func MakeFields(fields ...any) []Field {
 		case reflect.UnsafePointer:
 			field.Type = UnsafePointerType
 		}
-		f = append(f, field)
+		dst = append(dst, field)
+
 	}
-	return f
+	return dst
+}
+
+func MakeFields(fields ...any) []Field {
+	return AppendFields(nil, fields...)
 }
 
 // AddTo dispatches a field to the encoder without choosing an output format.
