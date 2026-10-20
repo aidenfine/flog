@@ -27,6 +27,7 @@ type Logger struct {
 type Config struct {
 	LogLevel   string // min level at which logs will show.
 	OutputPath []string
+	Separator  string
 	// errorOutputPath []string
 	// stacktrace bool
 	ShowTime bool
@@ -35,6 +36,10 @@ type Config struct {
 
 // New creates a logger and opens its output files in append mode.
 func New(production bool, name string, cfg Config) (*Logger, error) {
+	// set default
+	if cfg.Separator == "" {
+		cfg.Separator = "{}"
+	}
 	l := &Logger{
 		production: production,
 		name:       name,
@@ -103,6 +108,11 @@ func (l *Logger) check(msg string, level string, fields ...any) *src.Entity {
 	if src.LogLevelToInt[level] < src.LogLevelToInt[l.config.LogLevel] {
 		return nil
 	}
+	separator := l.config.Separator
+	if separator == "" {
+		separator = "{}"
+	}
+	msg, fields = formatMessage(msg, fields, separator)
 
 	if l.config.Encoding == "json" {
 		fmt.Printf("[WARN] [flog] - 'json' encoding not yet supported defaulting to 'console'.")
