@@ -83,8 +83,9 @@ logger.Info("server on port: ", port, "with the config of", server.config)
 ```
 ## Performance
 Current benchmark result on main branch:
+```bash
 BenchmarkLogMessageWith10Fields-14 4053475  1549 ns/op  400 B/op 7 allocs/op
-
+```
 Run tests and benchmarks with `make test` and `make bench`.
 Use `make profile` to collect CPU and memory profiles in `profiles/`.
 Run `make pprof-cpu` or `make pprof-memory` to collect fresh profiles and open
