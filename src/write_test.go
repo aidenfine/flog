@@ -26,7 +26,7 @@ func TestWriteLogFields(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var out bytes.Buffer
-			if _, err := WriteLog(&out, &Entity{Msg: tt.msg, Fields: tt.fields}); err != nil {
+			if _, err := WriteLog(&out, &Entity{Msg: tt.msg, Fields: tt.fields}, ""); err != nil {
 				t.Fatal(err)
 			}
 			if got := out.String(); got != tt.want {
@@ -47,7 +47,7 @@ func (consoleJSONTrap) String() string { return "plain value" }
 func TestConsoleIndependentEncoding(t *testing.T) {
 	var out bytes.Buffer
 	fields := MakeFields(consoleJSONTrap{}, testObject{}, testArray{})
-	if _, err := WriteLog(&out, &Entity{Fields: fields}); err != nil {
+	if _, err := WriteLog(&out, &Entity{Fields: fields}, ""); err != nil {
 		t.Fatal(err)
 	}
 	if want := "plain value {name:Alice ids:[1 2]} [1 2]\n"; out.String() != want {
@@ -57,7 +57,7 @@ func TestConsoleIndependentEncoding(t *testing.T) {
 
 func TestConsoleMarshalerError(t *testing.T) {
 	var out bytes.Buffer
-	if _, err := WriteLog(&out, &Entity{Fields: MakeFields(failingObject{fmt.Errorf("failed")})}); err == nil {
+	if _, err := WriteLog(&out, &Entity{Fields: MakeFields(failingObject{fmt.Errorf("failed")})}, ""); err == nil {
 		t.Fatal("expected marshaler error")
 	}
 	if out.Len() != 0 {

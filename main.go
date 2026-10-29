@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"runtime"
 	"sync"
 	"time"
 
@@ -23,6 +25,8 @@ type Logger struct {
 	mu     sync.Mutex
 	fields []src.Field
 	closed bool
+
+	caller bool
 }
 
 type Config struct {
@@ -86,14 +90,28 @@ func (l *Logger) log(level, msg string, fields ...any) {
 	if l.closed {
 		return
 	}
+
+	caller := ""
+	if l.caller {
+		_, file, line, ok := runtime.Caller(2)
+		if ok {
+			caller := fmt.Sprintf("- %s:%d \n", filepath.Base(file), line)
+			fields = append(fields, caller)
+		}
+	}
 	if e := l.check(msg, level, fields...); e != nil {
-		if _, err := src.WriteLog(l.output, e); err != nil {
+		if _, err := src.WriteLog(l.output, e, caller); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to write log: %v\n", err)
 		}
 		// clear fields
 		clear(l.fields)
 		l.fields = l.fields[:0]
 	}
+}
+
+func (l *Logger) Caller() *Logger {
+	l.caller = true
+	return l
 }
 
 // Close releases the output files opened by New. It is safe to call repeatedly.

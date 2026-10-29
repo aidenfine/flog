@@ -6,10 +6,17 @@ import (
 	"time"
 )
 
-func WriteLog(out io.Writer, e *Entity) ([]byte, error) {
+// could we possibly abstract this caller arg away later?
+// Would be a bit nicer to have the caller as an Entity (should compare performance though)
+func WriteLog(out io.Writer, e *Entity, caller string) ([]byte, error) {
 	buf, err := encode(e)
 	if err != nil {
 		return nil, err
+	}
+
+	// will this have perf hit?
+	if caller != "" {
+		buf.WriteString(caller)
 	}
 
 	buf.WriteByte('\n')

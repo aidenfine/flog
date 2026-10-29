@@ -107,7 +107,7 @@ func Test(t *testing.T) {
 	})
 
 	port := 8080
-	logger.Info("server on port: ", port, "with the config of", flog.Config{
+	logger.Caller().Info("server on port: ", port, "with the config of", flog.Config{
 		OutputPath: nil,
 		ShowTime:   true,
 	})
