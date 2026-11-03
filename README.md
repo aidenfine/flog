@@ -49,6 +49,7 @@ defer logger.Close()
 | `OutputPath` | Files to create or append logs to. Logs also go to stderr. Leave empty for stderr only. | `None` |
 | `Separator` | Placeholder used to insert values into messages, such as `"{}"` or `"[]"`. Defaults to `"{}"` when empty. Custom values must contain exactly two characters; invalid values panic when formatting a log. | `"{}"` |
 | `ShowTime` | Include a timestamp when `true`. Defaults to `false`. | `false`|
+| `TimeEncoding` | Change encoding type on timestamps, using Go's `time` library. | `RFC3339` |
 | `Encoding` | Use `"console"` or leave empty for console output. `"json"` is not supported yet and falls back to console with a warning. | `"console"` |
 
 `New` returns an error if an output file cannot be opened; call `Close` when finished to release the files.
