@@ -12,12 +12,12 @@ test:
 
 bench:
 	mkdir -p "$(PROFILE_DIR)"
-	$(GO) test -c -o "$(PROFILE_DIR)/flog.test" .
+	$(GO) test -c -o "$(PROFILE_DIR)/flog.test" ./bench
 	"$(abspath $(PROFILE_DIR))/flog.test" -test.run='^$$' -test.bench='$(BENCH)' -test.benchtime=$(BENCHTIME) -test.benchmem 2>"$(PROFILE_DIR)/benchmark.stderr.log"
 
 profile:
 	mkdir -p "$(PROFILE_DIR)"
-	$(GO) test -c -o "$(PROFILE_DIR)/flog.test" .
+	$(GO) test -c -o "$(PROFILE_DIR)/flog.test" ./bench
 	"$(abspath $(PROFILE_DIR))/flog.test" -test.run='^$$' -test.bench='$(BENCH)' -test.benchtime=$(BENCHTIME) -test.benchmem -test.cpuprofile="$(PROFILE_DIR)/cpu.prof" -test.memprofile="$(PROFILE_DIR)/mem.prof" 2>"$(PROFILE_DIR)/benchmark.stderr.log"
 
 pprof-cpu: profile
