@@ -28,7 +28,11 @@ func encode(e *Entity) (*bytes.Buffer, error) {
 	message := bytes.NewBuffer(nil)
 
 	if e.Time != nil {
-		message.WriteString(e.Time.Format(time.RFC3339))
+		layout := e.TimeFormat
+		if layout == "" {
+			layout = time.RFC3339
+		}
+		message.WriteString(e.Time.Format(layout))
 		message.WriteByte(' ')
 	}
 

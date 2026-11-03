@@ -10,5 +10,6 @@ type Entity struct {
 	Fields     []Field // list of fields
 	LogLevel   string
 	Time       *time.Time
+	TimeFormat string
 	LoggerName string
 }

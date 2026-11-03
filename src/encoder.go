@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 // ObjectEncoder encodes named fields. Methods return serialization errors.
@@ -180,4 +181,35 @@ func encodeFields(fields []Field) ([]byte, error) {
 		}
 	}
 	return []byte("{" + enc.buf.String() + "}"), nil
+}
+
+func EpochTimeEncoder(t time.Time) float64 {
+	nanoSeconds := t.UnixNano()
+	return float64(nanoSeconds) / float64(time.Second)
+}
+
+func EpochMillisTimeEncoder(t time.Time) float64 {
+	nanos := t.UnixNano()
+	return float64(nanos) / float64(time.Millisecond)
+}
+
+func EpochNanosTimeEncoder(t time.Time) int64 {
+	return t.UnixNano()
+}
+
+func encodeTime(t time.Time, format string) string {
+	return t.Format(format)
+}
+
+func RFC3339TimeEncoder(t time.Time) string {
+	return encodeTime(t, time.RFC3339)
+}
+
+func RFC3339NanoEncoder(t time.Time) string {
+	return encodeTime(t, time.RFC3339Nano)
+}
+
+// bc why not!
+func KitchenEncoder(t time.Time) string {
+	return encodeTime(t, time.Kitchen)
 }
