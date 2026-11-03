@@ -86,7 +86,7 @@ logger.Info("server on port: ", port, "with the config of", server.config)
 
 Latest benchmark result:
 
-| Benchmark | Iterations | Time per operation | Bytes per operation | Allocations per operation |
+| Benchmark | Iterations | Time per op | Bytes per op | Allocations per op |
 |---|---:|---:|---:|---:|
 | BenchmarkLogMessageWith10Fields-12 | 4,144,262 | 1,571 ns/op | 416 B/op | 7 allocs/op |
 
