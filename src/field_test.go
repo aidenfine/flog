@@ -96,7 +96,7 @@ func TestMakeFieldsArguments(t *testing.T) {
 		values []any
 		want   []Field
 	}{
-		{name: "no arguments", want: []Field(nil)},
+		{name: "no arguments", want: []Field{}},
 		{
 			name:   "multiple arguments preserve order",
 			values: []any{int32(7), "hello", nil, true},
