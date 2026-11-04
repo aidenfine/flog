@@ -21,16 +21,16 @@ func BenchmarkLogMessageWith10Fields(b *testing.B) {
 	})
 
 	fields := []any{
-		flog.Any("request_id", "req-123"),
-		flog.Any("method", "GET"),
-		flog.Any("path", "/api/users"),
-		flog.Any("status", 200),
-		flog.Any("duration_ms", 12.5),
-		flog.Any("user_id", 42),
-		flog.Any("remote_ip", "1.1.1.1.1"),
-		flog.Any("bytes_sent", 1024),
-		flog.Any("cached", false),
-		flog.Any("service", "api"),
+		"request_id", "req-123",
+		"method", "GET",
+		"path", "/api/users",
+		"status", 200,
+		"duration_ms", 12.5,
+		"user_id", 42,
+		"remote_ip", "1.1.1.1.1",
+		"bytes_sent", 1024,
+		"cached", false,
+		"service", "api",
 	}
 	b.ReportAllocs()
 	b.ResetTimer()
