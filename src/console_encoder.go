@@ -15,6 +15,11 @@ type consoleEncoder struct {
 	structured bool
 }
 
+type ConsoleWriter struct {
+	buf bytes.Buffer
+	enc consoleEncoder
+}
+
 // quote appends into the buffer's spare capacity without a temporary string.
 func (e *consoleEncoder) quote(value string) {
 	e.buf.Grow(4*len(value) + 2)
@@ -223,7 +228,7 @@ func (e *consoleEncoder) AppendFloat32(value float32) error { return e.AddFloat3
 
 func (e *consoleEncoder) AppendFloat64(value float64) error { return e.AddFloat64("", value) }
 
-func writeConsoleValues(buf *bytes.Buffer, fields []Field) error {
+func (w *ConsoleWriter) writeConsoleValues(fields []Field) error {
 	structured := false
 	for _, field := range fields {
 		if field.Key != "" {
@@ -231,16 +236,22 @@ func writeConsoleValues(buf *bytes.Buffer, fields []Field) error {
 			break
 		}
 	}
-	enc := &consoleEncoder{buf: buf, named: structured, structured: structured}
+
+	w.enc = consoleEncoder{
+		buf:        &w.buf,
+		named:      structured,
+		structured: structured,
+	}
+
 	if structured {
-		buf.WriteByte('{')
+		w.buf.WriteByte('{')
 	}
 	for i, field := range fields {
 		if duration, ok := field.Any.(time.Duration); ok {
 			field.Type = StringType
 			field.String = duration.String()
 		}
-		if err := field.AddTo(enc); err != nil {
+		if err := field.AddTo(&w.enc); err != nil {
 			key := field.Key
 			if key == "" {
 				key = fmt.Sprintf("arg%d", i)
@@ -249,7 +260,7 @@ func writeConsoleValues(buf *bytes.Buffer, fields []Field) error {
 		}
 	}
 	if structured {
-		buf.WriteByte('}')
+		w.buf.WriteByte('}')
 	}
 	return nil
 }

@@ -1,5 +1,12 @@
 GO ?= go
+STRICT ?= 0
+ifeq ($(STRICT),1)
+BENCH ?= ^BenchmarkLogMessageWith10StrictFields$$
+else ifneq ($(filter profile pprof-cpu pprof-memory,$(MAKECMDGOALS)),)
+BENCH ?= ^BenchmarkLogMessageWith10Fields$$
+else
 BENCH ?= ^BenchmarkLogMessageWith10(Strict)?Fields$$
+endif
 BENCHTIME ?= 5s
 PROFILE_DIR ?= profiles
 BASE ?=
