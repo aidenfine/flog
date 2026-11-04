@@ -3,7 +3,9 @@ package flog
 import (
 	"bytes"
 	"reflect"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestFormatMessageSeparator(t *testing.T) {
@@ -41,42 +43,13 @@ func TestFormatMessageInvalidSeparator(t *testing.T) {
 	}
 }
 
-func TestPlaceholderLogging(t *testing.T) {
-	tests := []struct {
-		name string
-		msg  string
-		args []any
-		want string
-	}{
-		{"values", "user={}, is he active: {}", []any{"alice", true}, "user=alice, is he active: true"},
-		{"missing", "{} {}", []any{42}, "42 {}"},
-		{"extra", "user={}", []any{"alice", 42}, "user=alice 42"},
-		{"no arguments", "empty={}", nil, "empty={}"},
-		{"escapes", "{{}} {{{}}} }} {", []any{"alice"}, "{} {alice} } {"},
-		{"escaped without arguments", "{{}}", nil, "{}"},
-		{"unicode", "你好 {}", []any{"世界"}, "你好 世界"},
-		{"nil", "value={}", []any{nil}, "value=<nil>"},
-		{"literal replacement", "{} {}", []any{"{}", "%s"}, "{} %s"},
-		{"existing values", "user", []any{"alice", true}, "user alice true"},
-		{"fields", "user={}", []any{Any("count", 3), "alice", Any("active", true)}, "user=alice 3 true"},
-		{"only fields", "user={}", []any{Any("count", 3)}, "user={} 3"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var out bytes.Buffer
-			logger := &Logger{name: "app", output: &out}
-			for _, method := range []struct {
-				level string
-				log   func(string, ...any)
-			}{{"INFO", logger.Info}, {"DEBUG", logger.Debug}, {"ERROR", logger.Error}} {
-				out.Reset()
-				method.log(tt.msg, tt.args...)
-				want := "[" + method.level + "] [app] - " + tt.want + "\n"
-				if got := out.String(); got != want {
-					t.Errorf("%s: got %q, want %q", method.level, got, want)
-				}
-			}
-		})
+func TestKeyValueLogging(t *testing.T) {
+	var out bytes.Buffer
+	logger := &Logger{name: "app", output: &out}
+	logger.Info("failed to fetch URL", "url", "https://example.com", "attempt", 3, "backoff", time.Second)
+	want := `[INFO] [app] - failed to fetch URL {"url": "https://example.com", "attempt": 3, "backoff": "1s"}` + "\n"
+	if out.String() != want {
+		t.Fatalf("got %q, want %q", out.String(), want)
 	}
 }
 
@@ -96,5 +69,21 @@ func TestDisabledLogsSkipFormatting(t *testing.T) {
 	logger.Error("{}", countedStringer{&calls})
 	if calls != 0 || out.Len() != 0 {
 		t.Fatalf("disabled logs formatted %d values and wrote %q", calls, out.String())
+	}
+}
+
+func TestCallerOutsideFields(t *testing.T) {
+	var out bytes.Buffer
+	logger := &Logger{name: "app", output: &out}
+	logger.Caller().Info("first", "attempt", 3)
+	logger.Info("second", "attempt", 4)
+	lines := strings.Split(strings.TrimSuffix(out.String(), "\n"), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("unexpected output: %q", out.String())
+	}
+	for i, line := range lines {
+		if strings.Contains(line, "!BADKEY") || !strings.Contains(line, "} - format_test.go:") {
+			t.Errorf("line %d: %q", i, line)
+		}
 	}
 }

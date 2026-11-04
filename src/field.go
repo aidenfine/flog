@@ -43,7 +43,31 @@ type Field struct {
 	Any     any
 }
 
-func AppendFields(dst []Field, values ...any) []Field {
+// dst (destination): slice that AppendFields add the fields to.
+// AppendFields appends explicit Fields or alternating string keys and values.
+// Missing values and non-string keys are preserved under !BADKEY.
+func AppendFields(dst []Field, args ...any) []Field {
+	for i := 0; i < len(args); {
+		if field, ok := args[i].(Field); ok {
+			dst = append(dst, field)
+			i++
+			continue
+		}
+		key, ok := args[i].(string)
+		if !ok || i+1 == len(args) {
+			dst = appendValues(dst, args[i])
+			dst[len(dst)-1].Key = "!BADKEY"
+			i++
+			continue
+		}
+		dst = appendValues(dst, args[i+1])
+		dst[len(dst)-1].Key = key
+		i += 2
+	}
+	return dst
+}
+
+func appendValues(dst []Field, values ...any) []Field {
 	for _, value := range values {
 		if field, ok := value.(Field); ok {
 			dst = append(dst, field)
@@ -133,8 +157,9 @@ func AppendFields(dst []Field, values ...any) []Field {
 	return dst
 }
 
-func MakeFields(fields ...any) []Field {
-	return AppendFields(nil, fields...)
+// MakeFields converts individual values into fields without parsing key-value pairs.
+func MakeFields(values ...any) []Field {
+	return appendValues(nil, values...)
 }
 
 // AddTo dispatches a field to the encoder without choosing an output format.

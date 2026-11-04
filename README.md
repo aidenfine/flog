@@ -18,9 +18,16 @@ if err != nil {
     panic(err)
 }
 defer logger.Close()
-logger.Info("server started: ", port)
-logger.Debug("handling request")
-logger.Error("request failed")
+
+logger.Info("server started: ", 
+	"port", port
+)
+logger.Debug("handling request").Caller() // Print caller with log message
+logger.Error("an api request failed!", 
+	"http_error", 429,
+	"reason", "rate_limit",
+	""
+)
 ```
 
 ## Configuration
@@ -31,7 +38,6 @@ Build a `flog.Config` and pass it as the third argument to `flog.New`:
 cfg := flog.Config{
     LogLevel:   "INFO",
     OutputPath: []string{"app.log"},
-    Separator:  "{}",
     ShowTime:   true,
     Encoding:   "console",
 }
@@ -47,41 +53,17 @@ defer logger.Close()
 | --- | --- | --- |
 | `LogLevel` | Minimum level to log: `"DEBUG"`, `"INFO"`, or `"ERROR"`. For example, `"INFO"` includes info and error messages. An empty string enables all levels. | `"INFO"` |
 | `OutputPath` | Files to create or append logs to. Logs also go to stderr. Leave empty for stderr only. | `None` |
-| `Separator` | Placeholder used to insert values into messages, such as `"{}"` or `"[]"`. Defaults to `"{}"` when empty. Custom values must contain exactly two characters; invalid values panic when formatting a log. | `"{}"` |
 | `ShowTime` | Include a timestamp when `true`. Defaults to `false`. | `false`|
 | `TimeEncoding` | Change encoding type on timestamps, using Go's `time` library. | `RFC3339` |
 | `Encoding` | Use `"console"` or leave empty for console output. `"json"` is not supported yet and falls back to console with a warning. | `"console"` |
 
 `New` returns an error if an output file cannot be opened; call `Close` when finished to release the files.
 
-So if `Separator` is set to `{}` use `{}` placeholders in `Info`, `Debug`, and `Error` to insert values in order:
-
 ```go
-logger.Info("user={}, is user active: {}", user.name, true)
-// [INFO] [app] - user=alice, is user active: true
+logger.Info("new user","user" user.name, "is user active", true).Caller()
+// [INFO] [app] - new user {"user": "alice", "is user active": true} - user_service.go:421
 ```
 
-Values use Go's default `%v` formatting, so strings appear without quotes.
-Write `{{` and `}}` for literal braces (for example, `{{}}` logs `{}`).
-Unfilled placeholders remain `{}`; extra arguments are appended as before.
-Explicit `flog.Any(...)` fields stay separate and do not consume placeholders.
-
-Console fields are printed as space-separated values without JSON serialization: strings are unquoted, byte slices display as numbers, and maps and structs use Go formatting. Custom object and array marshalers use the console encoder.
-Formatting is skipped for disabled log levels. Calls without placeholders or
-escaped braces keep their existing behavior.
-
-The package is very flexible allowing for loosely structured logs as well.
-```go
-import "github.com/aidenfine/flog"
-
-port := 8080
-logger, err := flog.New(false, "app", flog.Config{ShowTime: true, Separator: "{}"})
-if err != nil {
-    panic(err)
-}
-defer logger.Close()
-logger.Info("server on port: ", port, "with the config of", server.config)
-```
 ## Performance
 
 Latest benchmark result:

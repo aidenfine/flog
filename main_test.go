@@ -107,8 +107,19 @@ func Test(t *testing.T) {
 	})
 
 	port := 8080
-	logger.Caller().Info("server on port: ", port, "with the config of", flog.Config{
-		OutputPath: nil,
-		ShowTime:   true,
-	})
+	logger.Caller().Info("server started",
+		"port", port,
+		"flog_config", flog.Config{
+			OutputPath: []string{"mylog.log", "mylog2.log", "log3.txt"},
+			ShowTime:   true,
+		},
+	)
+
+	logger.Info("Failed to fetch data",
+		"url", "https://google.com/",
+		"attempt_number", 5,
+	)
+
+	logger.Info("new user", "user", "alice", "is user active", true)
+
 }
