@@ -9,13 +9,12 @@ type FieldType uint8
 
 const (
 	NoneType FieldType = iota
+	Invalidtype
 	ArrayType
 	ObjectType
 	BinaryType
 	BoolType
 	ByteStringType
-	Int64Type
-	Uint64Type
 	Float64Type
 	Complex128Type
 	StringType
@@ -27,10 +26,12 @@ const (
 	Int8Type
 	Int16Type
 	Int32Type
+	Int64Type
 	UintType
 	Uint8Type
 	Uint16Type
 	Uint32Type
+	Uint64Type
 	UintptrType
 	Float32Type
 )
@@ -165,6 +166,8 @@ func MakeFields(values ...any) []Field {
 // AddTo dispatches a field to the encoder without choosing an output format.
 func (f Field) AddTo(enc ObjectEncoder) error {
 	switch f.Type {
+	case Invalidtype:
+		return fmt.Errorf("invalid field value of type %T", f.Any)
 	case NoneType:
 		return enc.AddNull(f.Key)
 	case BoolType:

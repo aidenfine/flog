@@ -122,4 +122,9 @@ func Test(t *testing.T) {
 
 	logger.Info("new user", "user", "alice", "is user active", true)
 
+	logger.Info("hello world",
+		flog.String("url", "https://google.com/"),
+		flog.Int("attempt_number", 2052),
+	)
+
 }
