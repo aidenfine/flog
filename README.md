@@ -25,13 +25,12 @@ if err != nil {
 defer logger.Close()
 
 logger.Info("server started: ", 
-	"port", port
+	"port", port,
 )
 logger.Debug("handling request").Caller() // Print caller with log message
 logger.Error("an api request failed!", 
 	"http_error", 429,
 	"reason", "rate_limit",
-	""
 )
 ```
 
