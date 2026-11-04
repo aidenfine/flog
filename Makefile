@@ -1,5 +1,5 @@
 GO ?= go
-BENCH ?= ^BenchmarkLogMessageWith10Fields$$
+BENCH ?= ^BenchmarkLogMessageWith10(Strict)?Fields$$
 BENCHTIME ?= 5s
 PROFILE_DIR ?= profiles
 BASE ?=
