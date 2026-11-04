@@ -2,7 +2,7 @@
 
 A customizable development logger for Go applications, with console output, optional timestamps, and named fields.
 
-Install with Go 1.25.5 or later:
+Install with Go 1.26.10 or later:
 
 ```sh
 go get github.com/aidenfine/flog
