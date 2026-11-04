@@ -68,8 +68,8 @@ Latest benchmark result:
 
 | Benchmark | Iterations | Time per op | Bytes per op | Allocations per op |
 |---|---:|---:|---:|---:|
-| BenchmarkLogMessageWith10Fields-12 | 2,875,400 | 2,084 ns/op | 24 B/op | 1 allocs/op |
-| BenchmarkLogMessageWith10StrictFields-12 | 2,980,706 | 2,094 ns/op | 24 B/op | 1 allocs/op |
+| BenchmarkLogMessageWith10Fields-12 | 3,032,506 | 2,039 ns/op | 0 B/op | 0 allocs/op |
+| BenchmarkLogMessageWith10StrictFields-12 | 2,989,356 | 1,976 ns/op | 0 B/op | 0 allocs/op |
 
 The `-12` suffix indicates `GOMAXPROCS=12`.
 
