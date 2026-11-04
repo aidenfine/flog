@@ -10,6 +10,11 @@ go get github.com/aidenfine/flog
 
 Simple example
 ```go
+logger.Info("new user","user" user.name, "is user active", true).Caller()
+// [INFO] [app] - new user {"user": "alice", "is user active": true} - user_service.go:421
+```
+
+```go
 import "github.com/aidenfine/flog"
 
 port := 8080
@@ -57,20 +62,14 @@ defer logger.Close()
 | `TimeEncoding` | Change encoding type on timestamps, using Go's `time` library. | `RFC3339` |
 | `Encoding` | Use `"console"` or leave empty for console output. `"json"` is not supported yet and falls back to console with a warning. | `"console"` |
 
-`New` returns an error if an output file cannot be opened; call `Close` when finished to release the files.
-
-```go
-logger.Info("new user","user" user.name, "is user active", true).Caller()
-// [INFO] [app] - new user {"user": "alice", "is user active": true} - user_service.go:421
-```
-
 ## Performance
 
 Latest benchmark result:
 
 | Benchmark | Iterations | Time per op | Bytes per op | Allocations per op |
 |---|---:|---:|---:|---:|
-| BenchmarkLogMessageWith10Fields-12 | 4,144,262 | 1,571 ns/op | 416 B/op | 7 allocs/op |
+| BenchmarkLogMessageWith10Fields-12 | 2,875,400 | 2,084 ns/op | 24 B/op | 1 allocs/op |
+| BenchmarkLogMessageWith10StrictFields-12 | 2,980,706 | 2,094 ns/op | 24 B/op | 1 allocs/op |
 
 The `-12` suffix indicates `GOMAXPROCS=12`.
 
