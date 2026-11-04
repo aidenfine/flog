@@ -1,7 +1,6 @@
 package flog
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -25,7 +24,7 @@ type Logger struct {
 	files     []*os.File
 	mu        sync.Mutex
 	fields    []src.Field
-	buffer    bytes.Buffer
+	writer    src.ConsoleWriter
 	entry     src.Entity
 	timestamp time.Time
 	closed    bool
@@ -104,14 +103,15 @@ func (l *Logger) log(level, msg string, fields ...any) {
 		}
 	}
 	if e := l.check(msg, level, fields...); e != nil {
-		if _, err := src.WriteLogBuffer(l.output, &l.buffer, e, caller); err != nil {
+		_, err := l.writer.WriteLog(l.output, e, caller)
+		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to write log: %v\n", err)
 		}
-		// clear fields
-		clear(l.fields)
-		l.fields = l.fields[:0]
-		l.entry = src.Entity{}
 	}
+	// clear fields
+	clear(l.fields)
+	l.fields = l.fields[:0]
+	l.entry = src.Entity{}
 }
 
 func (l *Logger) Caller() *Logger {
