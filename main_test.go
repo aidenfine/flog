@@ -104,6 +104,13 @@ func Test(t *testing.T) {
 		if err := logger.Close(); err != nil {
 			t.Error(err)
 		}
+
+		for _, i := range []string{"mylog.log", "mylog2.log", "log3.txt"} {
+			err := os.Remove(i)
+			if err != nil {
+				fmt.Println("failed to delete file")
+			}
+		}
 	})
 
 	port := 8080
