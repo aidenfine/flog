@@ -1,6 +1,7 @@
 package flog
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -17,14 +18,17 @@ type Logger struct {
 	production bool
 	// onPanic    bool
 	// onFatal    bool
-	name   string
-	config Config
-	clock  src.Clock
-	output io.Writer
-	files  []*os.File
-	mu     sync.Mutex
-	fields []src.Field
-	closed bool
+	name      string
+	config    Config
+	clock     src.Clock
+	output    io.Writer
+	files     []*os.File
+	mu        sync.Mutex
+	fields    []src.Field
+	buffer    bytes.Buffer
+	entry     src.Entity
+	timestamp time.Time
+	closed    bool
 
 	caller bool
 }
@@ -32,7 +36,7 @@ type Logger struct {
 type Config struct {
 	LogLevel   string // min level at which logs will show.
 	OutputPath []string
-	Separator  string
+	Separator  string // lets remove this, we prob dont need it.
 	// errorOutputPath []string
 	// stacktrace bool
 	ShowTime     bool
@@ -96,17 +100,17 @@ func (l *Logger) log(level, msg string, fields ...any) {
 	if l.caller {
 		_, file, line, ok := runtime.Caller(2)
 		if ok {
-			caller := fmt.Sprintf("- %s:%d \n", filepath.Base(file), line)
-			fields = append(fields, caller)
+			caller = fmt.Sprintf(" - %s:%d", filepath.Base(file), line)
 		}
 	}
 	if e := l.check(msg, level, fields...); e != nil {
-		if _, err := src.WriteLog(l.output, e, caller); err != nil {
+		if _, err := src.WriteLogBuffer(l.output, &l.buffer, e, caller); err != nil {
 			fmt.Fprintf(os.Stderr, "failed to write log: %v\n", err)
 		}
 		// clear fields
 		clear(l.fields)
 		l.fields = l.fields[:0]
+		l.entry = src.Entity{}
 	}
 }
 
@@ -138,11 +142,6 @@ func (l *Logger) check(msg string, level string, fields ...any) *src.Entity {
 	if src.LogLevelToInt[level] < src.LogLevelToInt[l.config.LogLevel] {
 		return nil
 	}
-	separator := l.config.Separator
-	if separator == "" {
-		separator = "{}"
-	}
-	msg, fields = formatMessage(msg, fields, separator)
 
 	if l.config.Encoding == "json" {
 		fmt.Printf("[WARN] [flog] - 'json' encoding not yet supported defaulting to 'console'.")
@@ -150,12 +149,12 @@ func (l *Logger) check(msg string, level string, fields ...any) *src.Entity {
 
 	var t *time.Time = nil
 	if l.config.ShowTime {
-		now := l.clock.Now()
-		t = &now
+		l.timestamp = l.clock.Now()
+		t = &l.timestamp
 	}
 
 	l.fields = src.AppendFields(l.fields[:0], fields...)
-	e := &src.Entity{
+	l.entry = src.Entity{
 		Msg:        msg,
 		LoggerName: l.name,
 		Time:       t,
@@ -171,6 +170,6 @@ func (l *Logger) check(msg string, level string, fields ...any) *src.Entity {
 	// 	fmt.Println(string(stack))
 	// }
 
-	return e
+	return &l.entry
 
 }

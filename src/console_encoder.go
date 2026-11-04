@@ -4,24 +4,43 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"time"
 )
 
-// consoleEncoder writes values directly into the log buffer. Only nested
-// objects include keys; top-level fields retain positional console output.
+// consoleEncoder writes console values, with JSON-like formatting for named fields.
 type consoleEncoder struct {
-	buf   *bytes.Buffer
-	count int
-	named bool
+	buf        *bytes.Buffer
+	count      int
+	named      bool
+	structured bool
+}
+
+// quote appends into the buffer's spare capacity without a temporary string.
+func (e *consoleEncoder) quote(value string) {
+	e.buf.Grow(4*len(value) + 2)
+	e.buf.Write(strconv.AppendQuote(e.buf.AvailableBuffer(), value))
 }
 
 func (e *consoleEncoder) next(key string) {
 	if e.count > 0 {
-		e.buf.WriteByte(' ')
+		if e.structured {
+			e.buf.WriteString(", ")
+		} else {
+			e.buf.WriteByte(' ')
+		}
 	}
 	e.count++
 	if e.named {
+		if e.structured {
+			e.quote(key)
+			e.buf.WriteString(": ")
+		} else {
+			e.buf.WriteString(key)
+			e.buf.WriteByte(':')
+		}
+	} else if key != "" {
 		e.buf.WriteString(key)
-		e.buf.WriteByte(':')
+		e.buf.WriteByte('=')
 	}
 }
 
@@ -37,21 +56,23 @@ func (e *consoleEncoder) AddReflected(key string, value any) error {
 }
 func (e *consoleEncoder) AddString(key, value string) error {
 	e.next(key)
-	e.buf.WriteString(value)
+	if e.structured {
+		e.quote(value)
+	} else {
+		e.buf.WriteString(value)
+	}
 	return nil
 }
 func (e *consoleEncoder) AddBinary(key string, value []byte) error {
 	return e.AddReflected(key, value)
 }
 func (e *consoleEncoder) AddByteString(key string, value []byte) error {
-	e.next(key)
-	e.buf.Write(value)
-	return nil
+	return e.AddString(key, string(value))
 }
 func (e *consoleEncoder) AddObject(key string, value ObjectMarshaler) error {
 	e.next(key)
 	e.buf.WriteByte('{')
-	child := &consoleEncoder{buf: e.buf, named: true}
+	child := &consoleEncoder{buf: e.buf, named: true, structured: e.structured}
 	if err := value.MarshalLogObject(child); err != nil {
 		return err
 	}
@@ -61,7 +82,7 @@ func (e *consoleEncoder) AddObject(key string, value ObjectMarshaler) error {
 func (e *consoleEncoder) AddArray(key string, value ArrayMarshaler) error {
 	e.next(key)
 	e.buf.WriteByte('[')
-	child := &consoleEncoder{buf: e.buf}
+	child := &consoleEncoder{buf: e.buf, structured: e.structured}
 	if err := value.MarshalLogArray(child); err != nil {
 		return err
 	}
@@ -203,8 +224,22 @@ func (e *consoleEncoder) AppendFloat32(value float32) error { return e.AddFloat3
 func (e *consoleEncoder) AppendFloat64(value float64) error { return e.AddFloat64("", value) }
 
 func writeConsoleValues(buf *bytes.Buffer, fields []Field) error {
-	enc := &consoleEncoder{buf: buf}
+	structured := false
+	for _, field := range fields {
+		if field.Key != "" {
+			structured = true
+			break
+		}
+	}
+	enc := &consoleEncoder{buf: buf, named: structured, structured: structured}
+	if structured {
+		buf.WriteByte('{')
+	}
 	for i, field := range fields {
+		if duration, ok := field.Any.(time.Duration); ok {
+			field.Type = StringType
+			field.String = duration.String()
+		}
 		if err := field.AddTo(enc); err != nil {
 			key := field.Key
 			if key == "" {
@@ -212,6 +247,9 @@ func writeConsoleValues(buf *bytes.Buffer, fields []Field) error {
 			}
 			return fmt.Errorf("field %q: %w", key, err)
 		}
+	}
+	if structured {
+		buf.WriteByte('}')
 	}
 	return nil
 }

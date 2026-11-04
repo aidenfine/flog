@@ -116,3 +116,16 @@ func TestMakeFieldsArguments(t *testing.T) {
 		})
 	}
 }
+
+func TestAppendFieldsPairs(t *testing.T) {
+	existing := MakeFields("existing")
+	got := AppendFields(existing, "url", "https://example.com", "attempt", 3, AnyTestField(), 42, "missing")
+	if len(got) != 6 {
+		t.Fatalf("got %d fields", len(got))
+	}
+	if got[1].Key != "url" || got[1].String != "https://example.com" || got[2].Key != "attempt" || got[2].Integer != 3 || got[3].Key != "explicit" || got[4].Key != "!BADKEY" || got[5].Key != "!BADKEY" {
+		t.Fatalf("unexpected fields: %+v", got)
+	}
+}
+
+func AnyTestField() Field { return Field{Key: "explicit", Type: BoolType, Integer: 1} }

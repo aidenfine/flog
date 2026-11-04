@@ -18,7 +18,7 @@ func TestWriteLogFields(t *testing.T) {
 		{name: "collections", msg: "values", fields: MakeFields([2]int{1, 2}, []string{"a", "b"}, map[string]int{"count": 2}, struct{ Count int }{2}), want: `values [1 2] [a b] map[count:2] {2}` + "\n"},
 		{name: "binary", msg: "bytes", fields: MakeFields([]byte{0, 255}), want: `bytes [0 255]` + "\n"},
 		{name: "byte string", msg: "text", fields: []Field{{Type: ByteStringType, Any: []byte("hello")}}, want: `text hello` + "\n"},
-		{name: "named field", msg: "received", fields: []Field{{Key: "count", Type: Int32Type, Integer: 2}}, want: `received 2` + "\n"},
+		{name: "named field", msg: "received", fields: []Field{{Key: "count", Type: Int32Type, Integer: 2}}, want: `received {"count": 2}` + "\n"},
 		{name: "fields without message", fields: MakeFields(1, 2), want: `1 2` + "\n"},
 		{name: "escaped string", msg: "text", fields: MakeFields("line\nnext"), want: "text line\nnext" + "\n"},
 	}
@@ -74,5 +74,52 @@ func BenchmarkConsoleValues(b *testing.B) {
 		if err := writeConsoleValues(&buf, fields); err != nil {
 			b.Fatal(err)
 		}
+	}
+}
+
+func TestNamedConsoleFields(t *testing.T) {
+	var out bytes.Buffer
+	fields := AppendFields(nil, "text", "line\n\"quoted\"", "object", testObject{}, "array", testArray{}, "raw", consoleJSONTrap{})
+	if _, err := WriteLog(&out, &Entity{Fields: fields}, ""); err != nil {
+		t.Fatal(err)
+	}
+	want := `{"text": "line\n\"quoted\"", "object": {"name": "Alice", "ids": [1, 2]}, "array": [1, 2], "raw": plain value}` + "\n"
+	if out.String() != want {
+		t.Fatalf("got %q, want %q", out.String(), want)
+	}
+}
+
+func TestWriteLogBufferReuse(t *testing.T) {
+	var buf, out bytes.Buffer
+	entries := []*Entity{
+		{Msg: "long message", Fields: AppendFields(nil, "text", "line\n\"quoted\"", "count", 123)},
+		{Msg: "short"},
+	}
+	for _, entry := range entries {
+		out.Reset()
+		want, err := WriteLog(&out, entry, " - file.go:12")
+		if err != nil {
+			t.Fatal(err)
+		}
+		expected := string(want)
+		out.Reset()
+		got, err := WriteLogBuffer(&out, &buf, entry, " - file.go:12")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(got) != expected || out.String() != expected {
+			t.Fatalf("got %q, want %q", got, expected)
+		}
+	}
+	out.Reset()
+	bad := &Entity{Msg: "partial", Fields: AppendFields(nil, "bad", failingObject{fmt.Errorf("failed")})}
+	if _, err := WriteLogBuffer(&out, &buf, bad, ""); err == nil || out.Len() != 0 {
+		t.Fatalf("error=%v output=%q", err, out.String())
+	}
+	if _, err := WriteLogBuffer(&out, &buf, &Entity{Msg: "recovered"}, ""); err != nil {
+		t.Fatal(err)
+	}
+	if out.String() != "recovered\n" {
+		t.Fatalf("got %q", out.String())
 	}
 }
