@@ -1,3 +1,4 @@
 *.log
 *.txt
 /profiles/
+main_test.go
