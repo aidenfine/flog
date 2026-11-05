@@ -87,6 +87,10 @@ func (l *Logger) Error(msg string, fields ...any) {
 	l.log("ERROR", msg, fields...)
 }
 
+func (l *Logger) Warn(msg string, fields ...any) {
+	l.log("WARN", msg, fields...)
+}
+
 func (l *Logger) log(level, msg string, fields ...any) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
