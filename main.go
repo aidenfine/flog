@@ -91,6 +91,10 @@ func (l *Logger) Warn(msg string, fields ...any) {
 	l.log("WARN", msg, fields...)
 }
 
+func (l *Logger) Panic(msg string, fields ...any) {
+	l.log("PANIC", msg, fields...)
+}
+
 func (l *Logger) log(level, msg string, fields ...any) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
@@ -116,6 +120,11 @@ func (l *Logger) log(level, msg string, fields ...any) {
 	clear(l.fields)
 	l.fields = l.fields[:0]
 	l.entry = src.Entity{}
+
+	// is this the best way to do this?
+	if level == "PANIC" {
+		panic("")
+	}
 }
 
 func (l *Logger) Caller() *Logger {

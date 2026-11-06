@@ -2,6 +2,7 @@ package src
 
 // map of the level to int by priority
 var LogLevelToInt = map[string]int{
+	"PANIC": 5,
 	"ERROR": 4,
 	"WARN":  3,
 	"INFO":  2,
@@ -10,6 +11,8 @@ var LogLevelToInt = map[string]int{
 
 func capsLevelToLower(level string) string {
 	switch level {
+	case "PANIC":
+		return "panic"
 	case "ERROR":
 		return "error"
 	case "DEBUG":
@@ -23,6 +26,8 @@ func capsLevelToLower(level string) string {
 }
 func lowerLevelToCaps(level string) string {
 	switch level {
+	case "panic":
+		return "PANIC"
 	case "error":
 		return "ERROR"
 	case "debug":

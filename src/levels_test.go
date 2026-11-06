@@ -2,14 +2,13 @@ package src
 
 import "testing"
 
-// this test are not really "needed" the logic is pretty straightforward but oh well free test cov %
-
 func TestCapsLevelToLower(t *testing.T) {
 	tests := []struct {
 		name  string
 		level string
 		want  string
 	}{
+		{name: "panic", level: "PANIC", want: "panic"},
 		{name: "error", level: "ERROR", want: "error"},
 		{name: "debug", level: "DEBUG", want: "debug"},
 		{name: "info", level: "INFO", want: "info"},
@@ -35,6 +34,7 @@ func TestLowerLevelToCaps(t *testing.T) {
 		level string
 		want  string
 	}{
+		{name: "panic", level: "panic", want: "PANIC"},
 		{name: "error", level: "error", want: "ERROR"},
 		{name: "debug", level: "debug", want: "DEBUG"},
 		{name: "info", level: "info", want: "INFO"},
