@@ -85,7 +85,7 @@ func TestConcurrentFileOutput(t *testing.T) {
 	if len(lines) != 20 {
 		t.Fatalf("got %d entries, want 20", len(lines))
 	}
-	for i := 0; i < 20; i++ {
+	for i := range 20 {
 		if !seen[fmt.Sprintf("[INFO] [app] - entry %d", i)] {
 			t.Errorf("missing entry %d", i)
 		}
