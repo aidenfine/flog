@@ -91,6 +91,10 @@ func (l *Logger) Warn(msg string, fields ...any) {
 	l.log("WARN", msg, fields...)
 }
 
+func (l *Logger) Fatal(msg string, fields ...any) {
+	l.log("FATAL", msg, fields...)
+}
+
 func (l *Logger) Panic(msg string, fields ...any) {
 	l.log("PANIC", msg, fields...)
 }
@@ -124,6 +128,10 @@ func (l *Logger) log(level, msg string, fields ...any) {
 	// is this the best way to do this?
 	if level == "PANIC" {
 		panic("")
+	}
+	// once again could this be done differently?
+	if level == "FATAL" {
+		os.Exit(1)
 	}
 }
 

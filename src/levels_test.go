@@ -9,6 +9,7 @@ func TestCapsLevelToLower(t *testing.T) {
 		want  string
 	}{
 		{name: "panic", level: "PANIC", want: "panic"},
+		{name: "fatal", level: "FATAL", want: "fatal"},
 		{name: "error", level: "ERROR", want: "error"},
 		{name: "debug", level: "DEBUG", want: "debug"},
 		{name: "info", level: "INFO", want: "info"},
@@ -35,6 +36,7 @@ func TestLowerLevelToCaps(t *testing.T) {
 		want  string
 	}{
 		{name: "panic", level: "panic", want: "PANIC"},
+		{name: "fatal", level: "fatal", want: "FATAL"},
 		{name: "error", level: "error", want: "ERROR"},
 		{name: "debug", level: "debug", want: "DEBUG"},
 		{name: "info", level: "info", want: "INFO"},
@@ -60,6 +62,8 @@ func TestLogLevelToInt(t *testing.T) {
 		want  int
 		ok    bool
 	}{
+		{level: "PANIC", want: 6, ok: true},
+		{level: "FATAL", want: 5, ok: true},
 		{level: "ERROR", want: 4, ok: true},
 		{level: "WARN", want: 3, ok: true},
 		{level: "INFO", want: 2, ok: true},
