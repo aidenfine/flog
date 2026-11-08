@@ -59,7 +59,7 @@ defer logger.Close()
 | `OutputPath` | Files to create or append logs to. Logs also go to stderr. Leave empty for stderr only. | `None` |
 | `ShowTime` | Include a timestamp when `true`. Defaults to `false`. | `false`|
 | `TimeEncoding` | Change encoding type on timestamps, using Go's `time` library. | `RFC3339` |
-| `Encoding` | Use `"console"` or leave empty for console output. `"json"` is not supported yet and falls back to console with a warning. | `"console"` |
+| `Encoding` | Use `"console"` or leave empty for console output. Use `"json"` for json output.| `"console"` |
 
 ## Performance
 
