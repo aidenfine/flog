@@ -12,10 +12,13 @@ PROFILE_DIR ?= profiles
 BASE ?=
 COMPARE_ADDR ?= localhost:8082
 
-.PHONY: test bench profile pprof-cpu pprof-memory pprof-compare
+.PHONY: test e2e bench profile pprof-cpu pprof-memory pprof-compare
 
 test:
 	$(GO) test ./...
+
+e2e:
+	$(GO) test ./e2e
 
 bench:
 	mkdir -p "$(PROFILE_DIR)"
