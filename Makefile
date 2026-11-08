@@ -17,7 +17,7 @@ COMPARE_ADDR ?= localhost:8082
 test:
 	$(GO) test ./...
 
-e2e:
+test-e2e:
 	$(GO) test ./e2e
 
 bench:
