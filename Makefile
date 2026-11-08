@@ -1,18 +1,23 @@
 GO ?= go
 STRICT ?= 0
 ifeq ($(STRICT),1)
-BENCH ?= ^BenchmarkLogMessageWith10StrictFields$$
-else ifneq ($(filter profile pprof-cpu pprof-memory,$(MAKECMDGOALS)),)
-BENCH ?= ^BenchmarkLogMessageWith10Fields$$
+BENCH ?= StrictFields
+PROFILE_BENCH ?= ^BenchmarkLogMessageWith10StrictFields$$
 else
-BENCH ?= ^BenchmarkLogMessageWith10(Strict)?Fields$$
+BENCH ?= .
+PROFILE_BENCH ?= ^BenchmarkLogMessageWith10Fields$$
 endif
+# An explicit BENCH selection also applies to profiling.
+ifneq ($(origin BENCH),file)
+PROFILE_BENCH = $(BENCH)
+endif
+BENCH_PKG ?= ./bench
 BENCHTIME ?= 5s
 PROFILE_DIR ?= profiles
 BASE ?=
 COMPARE_ADDR ?= localhost:8082
 
-.PHONY: test e2e bench profile pprof-cpu pprof-memory pprof-compare
+.PHONY: test test-e2e bench bench-build profile pprof-cpu pprof-memory pprof-compare
 
 test:
 	$(GO) test ./...
@@ -20,15 +25,15 @@ test:
 test-e2e:
 	$(GO) test ./e2e
 
-bench:
+bench-build:
 	mkdir -p "$(PROFILE_DIR)"
-	$(GO) test -c -o "$(PROFILE_DIR)/flog.test" ./bench
+	$(GO) test -c -o "$(PROFILE_DIR)/flog.test" $(BENCH_PKG)
+
+bench: bench-build
 	"$(abspath $(PROFILE_DIR))/flog.test" -test.run='^$$' -test.bench='$(BENCH)' -test.benchtime=$(BENCHTIME) -test.benchmem 2>"$(PROFILE_DIR)/benchmark.stderr.log"
 
-profile:
-	mkdir -p "$(PROFILE_DIR)"
-	$(GO) test -c -o "$(PROFILE_DIR)/flog.test" ./bench
-	"$(abspath $(PROFILE_DIR))/flog.test" -test.run='^$$' -test.bench='$(BENCH)' -test.benchtime=$(BENCHTIME) -test.benchmem -test.cpuprofile="$(PROFILE_DIR)/cpu.prof" -test.memprofile="$(PROFILE_DIR)/mem.prof" 2>"$(PROFILE_DIR)/benchmark.stderr.log"
+profile: bench-build
+	"$(abspath $(PROFILE_DIR))/flog.test" -test.run='^$$' -test.bench='$(PROFILE_BENCH)' -test.benchtime=$(BENCHTIME) -test.benchmem -test.cpuprofile="$(PROFILE_DIR)/cpu.prof" -test.memprofile="$(PROFILE_DIR)/mem.prof" 2>"$(PROFILE_DIR)/benchmark.stderr.log"
 
 pprof-cpu: profile
 	$(GO) tool pprof -http=localhost:8080 "$(PROFILE_DIR)/flog.test" "$(PROFILE_DIR)/cpu.prof"

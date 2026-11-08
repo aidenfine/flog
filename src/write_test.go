@@ -28,7 +28,7 @@ func TestWriteLogFields(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var out bytes.Buffer
-			if _, err := new(ConsoleWriter).WriteLog(&out, &Entity{Msg: tt.msg, Fields: tt.fields}, ""); err != nil {
+			if _, err := new(Writer).WriteLog(&out, &Entity{Msg: tt.msg, Fields: tt.fields}, "", "console"); err != nil {
 				t.Fatal(err)
 			}
 			if got := out.String(); got != tt.want {
@@ -49,7 +49,7 @@ func (consoleJSONTrap) String() string { return "plain value" }
 func TestConsoleIndependentEncoding(t *testing.T) {
 	var out bytes.Buffer
 	fields := MakeFields(consoleJSONTrap{}, testObject{}, testArray{})
-	if _, err := new(ConsoleWriter).WriteLog(&out, &Entity{Fields: fields}, ""); err != nil {
+	if _, err := new(Writer).WriteLog(&out, &Entity{Fields: fields}, "", "console"); err != nil {
 		t.Fatal(err)
 	}
 	if want := "plain value {name:Alice ids:[1 2]} [1 2]\n"; out.String() != want {
@@ -59,7 +59,7 @@ func TestConsoleIndependentEncoding(t *testing.T) {
 
 func TestConsoleMarshalerError(t *testing.T) {
 	var out bytes.Buffer
-	if _, err := new(ConsoleWriter).WriteLog(&out, &Entity{Fields: MakeFields(failingObject{fmt.Errorf("failed")})}, ""); err == nil {
+	if _, err := new(Writer).WriteLog(&out, &Entity{Fields: MakeFields(failingObject{fmt.Errorf("failed")})}, "", "console"); err == nil {
 		t.Fatal("expected marshaler error")
 	}
 	if out.Len() != 0 {
@@ -70,7 +70,7 @@ func TestConsoleMarshalerError(t *testing.T) {
 func BenchmarkConsoleValues(b *testing.B) {
 	fields := MakeFields("req-123", "GET", "/api/users", 200, 12.5, 42, "1.1.1.1", 1024, false, "api")
 	b.ReportAllocs()
-	var writer ConsoleWriter
+	var writer Writer
 	for b.Loop() {
 		writer.buf.Reset()
 		if err := writer.writeConsoleValues(fields); err != nil {
@@ -82,7 +82,7 @@ func BenchmarkConsoleValues(b *testing.B) {
 func TestNamedConsoleFields(t *testing.T) {
 	var out bytes.Buffer
 	fields := AppendFields(nil, "text", "line\n\"quoted\"", "object", testObject{}, "array", testArray{}, "raw", consoleJSONTrap{})
-	if _, err := new(ConsoleWriter).WriteLog(&out, &Entity{Fields: fields}, ""); err != nil {
+	if _, err := new(Writer).WriteLog(&out, &Entity{Fields: fields}, "", "console"); err != nil {
 		t.Fatal(err)
 	}
 	want := `{"text": "line\n\"quoted\"", "object": {"name": "Alice", "ids": [1, 2]}, "array": [1, 2], "raw": plain value}` + "\n"
@@ -91,8 +91,8 @@ func TestNamedConsoleFields(t *testing.T) {
 	}
 }
 
-func TestConsoleWriterReuse(t *testing.T) {
-	var writer ConsoleWriter
+func TestWriterReuse(t *testing.T) {
+	var writer Writer
 	var out bytes.Buffer
 	now := time.Date(2026, 11, 3, 12, 0, 0, 0, time.UTC)
 	entries := []struct {
@@ -108,7 +108,7 @@ func TestConsoleWriterReuse(t *testing.T) {
 	}
 	for _, tt := range entries {
 		out.Reset()
-		got, err := writer.WriteLog(&out, &tt.entry, tt.caller)
+		got, err := writer.WriteLog(&out, &tt.entry, tt.caller, "console")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -118,10 +118,10 @@ func TestConsoleWriterReuse(t *testing.T) {
 	}
 	out.Reset()
 	bad := &Entity{Msg: "partial", Fields: AppendFields(nil, "bad", failingObject{fmt.Errorf("failed")})}
-	if _, err := writer.WriteLog(&out, bad, ""); err == nil || out.Len() != 0 {
+	if _, err := writer.WriteLog(&out, bad, "", "console"); err == nil || out.Len() != 0 {
 		t.Fatalf("error=%v output=%q", err, out.String())
 	}
-	if _, err := writer.WriteLog(&out, &Entity{Msg: "recovered", Fields: AppendFields(nil, "ok", true)}, ""); err != nil {
+	if _, err := writer.WriteLog(&out, &Entity{Msg: "recovered", Fields: AppendFields(nil, "ok", true)}, "", "console"); err != nil {
 		t.Fatal(err)
 	}
 	if out.String() != `recovered {"ok": true}`+"\n" {
@@ -129,12 +129,12 @@ func TestConsoleWriterReuse(t *testing.T) {
 	}
 }
 
-func BenchmarkConsoleWriterDiscard(b *testing.B) {
-	var writer ConsoleWriter
+func BenchmarkWriterDiscard(b *testing.B) {
+	var writer Writer
 	entry := Entity{Msg: "request completed", LogLevel: "INFO", LoggerName: "app", Fields: AppendFields(nil, "request_id", "req-123", "method", "GET", "path", "/api/users", "status", 200, "duration_ms", 12.5, "user_id", 42, "remote_ip", "1.1.1.1", "bytes_sent", 1024, "cached", false, "service", "api")}
 	b.ReportAllocs()
 	for b.Loop() {
-		if _, err := writer.WriteLog(io.Discard, &entry, ""); err != nil {
+		if _, err := writer.WriteLog(io.Discard, &entry, "", "console"); err != nil {
 			b.Fatal(err)
 		}
 	}
