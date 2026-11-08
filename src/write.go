@@ -86,11 +86,11 @@ func (w *Writer) jsonEncode(e *Entity, caller string) error {
 		}
 	}
 	if e.Time != nil {
-		layout := e.TimeFormat
-		if layout == "" {
-			layout = time.RFC3339
-		}
-		if err := w.jsonEnc.AddString("time", e.Time.Format(layout)); err != nil {
+		// layout := e.TimeFormat
+		// if layout == "" {
+		// layout = time.RFC3339
+		// }
+		if err := w.jsonEnc.AddString("time", RFC3339TimeEncoder(*e.Time)); err != nil {
 			return err
 		}
 	}

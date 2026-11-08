@@ -38,9 +38,9 @@ type Config struct {
 	Separator  string // lets remove this, we prob dont need it.
 	// errorOutputPath []string
 	// stacktrace bool
-	ShowTime     bool
-	TimeEncoding string // Go time layout; empty defaults to time.RFC3339. Used when ShowTime is true.
-	Encoding     string // "json" or "console"; empty defaults to console.
+	ShowTime bool
+	// TimeEncoding string // Go time layout; empty defaults to time.RFC3339. Used when ShowTime is true.
+	Encoding string // "json" or "console"; empty defaults to console.
 }
 
 // New creates a logger and opens its output files in append mode.
@@ -179,9 +179,9 @@ func (l *Logger) check(msg string, level string, fields ...any) *src.Entity {
 		Msg:        msg,
 		LoggerName: l.name,
 		Time:       t,
-		TimeFormat: l.config.TimeEncoding,
-		Fields:     l.fields,
-		LogLevel:   level,
+		// TimeFormat: l.config.TimeEncoding,
+		Fields:   l.fields,
+		LogLevel: level,
 	}
 
 	// not sure how much this will log.

@@ -28,7 +28,7 @@ func TestLoggerTimeFormat(t *testing.T) {
 		{"hidden", false, time.RFC3339Nano, ""},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
-			logger, err := New(false, "app", Config{ShowTime: tt.show, TimeEncoding: tt.layout})
+			logger, err := New(false, "app", Config{ShowTime: tt.show})
 			if err != nil {
 				t.Fatal(err)
 			}

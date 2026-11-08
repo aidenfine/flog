@@ -97,6 +97,7 @@ func Test(t *testing.T) {
 		OutputPath: []string{"mylog.log", "mylog2.log", "log3.txt"},
 		ShowTime:   true,
 		Encoding:   "json",
+		// TimeEncoding: ,
 	})
 	if err != nil {
 		t.Fatal(err)
