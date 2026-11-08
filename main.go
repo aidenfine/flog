@@ -24,7 +24,7 @@ type Logger struct {
 	files     []*os.File
 	mu        sync.Mutex
 	fields    []src.Field
-	writer    src.ConsoleWriter
+	writer    src.Writer
 	entry     src.Entity
 	timestamp time.Time
 	closed    bool
@@ -38,9 +38,9 @@ type Config struct {
 	Separator  string // lets remove this, we prob dont need it.
 	// errorOutputPath []string
 	// stacktrace bool
-	ShowTime     bool
-	TimeEncoding string // Go time layout; empty defaults to time.RFC3339. Used when ShowTime is true.
-	Encoding     string // json or console. json not currently supported
+	ShowTime bool
+	// TimeEncoding string // Go time layout; empty defaults to time.RFC3339. Used when ShowTime is true.
+	Encoding string // "json" or "console"; empty defaults to console.
 }
 
 // New creates a logger and opens its output files in append mode.
@@ -51,9 +51,13 @@ func New(production bool, name string, cfg Config) (*Logger, error) {
 		cfg.Separator = "{}"
 	}
 
-	// this does nothing as of now since Encoding is currently not used yet.
+	// Default to console output.
 	if cfg.Encoding == "" {
 		cfg.Encoding = "console"
+	}
+
+	if cfg.Encoding != "console" && cfg.Encoding != "json" {
+		return nil, fmt.Errorf("unsupported encoding %q", cfg.Encoding)
 	}
 
 	l := &Logger{
@@ -115,7 +119,7 @@ func (l *Logger) log(level, msg string, fields ...any) {
 		}
 	}
 	if e := l.check(msg, level, fields...); e != nil {
-		_, err := l.writer.WriteLog(l.output, e, caller)
+		_, err := l.writer.WriteLog(l.output, e, caller, l.config.Encoding)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to write log: %v\n", err)
 		}
@@ -164,10 +168,6 @@ func (l *Logger) check(msg string, level string, fields ...any) *src.Entity {
 		return nil
 	}
 
-	if l.config.Encoding == "json" {
-		fmt.Printf("[WARN] [flog] - 'json' encoding not yet supported defaulting to 'console'.")
-	}
-
 	var t *time.Time = nil
 	if l.config.ShowTime {
 		l.timestamp = l.clock.Now()
@@ -179,9 +179,9 @@ func (l *Logger) check(msg string, level string, fields ...any) *src.Entity {
 		Msg:        msg,
 		LoggerName: l.name,
 		Time:       t,
-		TimeFormat: l.config.TimeEncoding,
-		Fields:     l.fields,
-		LogLevel:   level,
+		// TimeFormat: l.config.TimeEncoding,
+		Fields:   l.fields,
+		LogLevel: level,
 	}
 
 	// not sure how much this will log.

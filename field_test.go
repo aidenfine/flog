@@ -12,7 +12,7 @@ import (
 func fieldConsole(t *testing.T, field Field) string {
 	t.Helper()
 	var out bytes.Buffer
-	if _, err := new(src.ConsoleWriter).WriteLog(&out, &src.Entity{Fields: []Field{field}}, ""); err != nil {
+	if _, err := new(src.Writer).WriteLog(&out, &src.Entity{Fields: []Field{field}}, "", "console"); err != nil {
 		t.Fatal(err)
 	}
 	return out.String()
@@ -76,7 +76,7 @@ func TestFieldHelpers(t *testing.T) {
 func TestInvalidFieldHelpers(t *testing.T) {
 	for _, field := range []Field{Invalid("key", 42), Array("key", 42), Object("key", 42), Chan("key", 42), Func("key", 42)} {
 		var out bytes.Buffer
-		if _, err := new(src.ConsoleWriter).WriteLog(&out, &src.Entity{Fields: []Field{field}}, ""); err == nil || out.Len() != 0 {
+		if _, err := new(src.Writer).WriteLog(&out, &src.Entity{Fields: []Field{field}}, "", "console"); err == nil || out.Len() != 0 {
 			t.Fatalf("field=%+v error=%v output=%q", field, err, out.String())
 		}
 	}
