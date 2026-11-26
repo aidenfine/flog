@@ -40,7 +40,6 @@ type Config struct {
 	// stacktrace bool
 	ShowTime     bool
 	TimeEncoding string // Go time layout; empty defaults to time.RFC3339. Used when ShowTime is true.
-	Encoding     string // json or console. json not currently supported
 }
 
 // New creates a logger and opens its output files in append mode.
@@ -49,11 +48,6 @@ func New(production bool, name string, cfg Config) (*Logger, error) {
 	// set default
 	if cfg.Separator == "" {
 		cfg.Separator = "{}"
-	}
-
-	// this does nothing as of now since Encoding is currently not used yet.
-	if cfg.Encoding == "" {
-		cfg.Encoding = "console"
 	}
 
 	l := &Logger{
@@ -162,10 +156,6 @@ func (l *Logger) Close() error {
 func (l *Logger) check(msg string, level string, fields ...any) *src.Entity {
 	if src.LogLevelToInt[level] < src.LogLevelToInt[l.config.LogLevel] {
 		return nil
-	}
-
-	if l.config.Encoding == "json" {
-		fmt.Printf("[WARN] [flog] - 'json' encoding not yet supported defaulting to 'console'.")
 	}
 
 	var t *time.Time = nil
